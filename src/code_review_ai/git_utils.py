@@ -57,3 +57,24 @@ def get_repo_root(repo_path: Path) -> Path:
     """Get the root directory of the git repository."""
     root = _run_git(["rev-parse", "--show-toplevel"], Path(repo_path).resolve())
     return Path(root.strip())
+
+
+def find_styleguide(repo_path: Path, explicit_path: str | None = None) -> str | None:
+    """Find and read the styleguide.
+
+    If explicit_path is given, read that file (error if missing).
+    Otherwise, look for styleguide.md in the repo root.
+    Returns the file content as a string, or None if not found.
+    """
+    if explicit_path:
+        p = Path(explicit_path)
+        if not p.is_file():
+            raise GitError(f"Styleguide not found: {explicit_path}")
+        return p.read_text(encoding="utf-8")
+
+    repo_root = get_repo_root(repo_path)
+    styleguide_path = repo_root / "styleguide.md"
+    if styleguide_path.is_file():
+        return styleguide_path.read_text(encoding="utf-8")
+
+    return None
